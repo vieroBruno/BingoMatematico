@@ -1,0 +1,79 @@
+/* Estilos da Tela de Jogo */
+.tela-jogo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Painel Superior (Expressão, Vidas, Tempo) */
+.painel-superior {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background-color: var(--cor-primaria);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.vidas, .tempo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.vidas span {
+    color: var(--cor-erro);
+    margin-left: 8px;
+}
+.tempo span {
+    margin-left: 8px;
+}
+
+.expressao-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--cor-texto);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Cartela de Bingo */
+.cartela-bingo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.numero-cartela {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: bold;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.numero-cartela:hover {
+  border-color: var(--cor-primaria);
+  transform: scale(1.05);
+}
+
+.numero-cartela.marcado {
+  background-color: var(--cor-secundaria);
+  color: white;
+  border-color: var(--cor-secundaria);
+  transform: rotate(360deg);
+  transition: transform 0.5s ease, background-color 0.5s ease;
+}
