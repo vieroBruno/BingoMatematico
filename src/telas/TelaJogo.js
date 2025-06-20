@@ -1,21 +1,58 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-// As constantes e a função auxiliar `verificarVitoria` permanecem as mesmas...
+// ... (constantes TAMANHO_CARTELA, VIDAS_INICIAIS)
 const TAMANHO_CARTELA = 5;
 const VIDAS_INICIAIS = 5;
 
-const gerarNumerosCartela = (quantidade, dificuldade) => {
+
+// ### NOVA FUNÇÃO AUXILIAR ###
+// Verifica se um número é composto (não primo) e tem fatores dentro dos limites da dificuldade.
+const isNumeroValidoParaMultiplicacao = (num, dificuldade) => {
+    if (num <= 3) return false; // Números muito pequenos não são bons para gerar contas.
+    for (let i = 2; i <= Math.sqrt(num); i++) {
+        if (num % i === 0) {
+            const par = num / i;
+            if (dificuldade === 'facil') {
+                // Para ser fácil, ambos os fatores devem ser 10 ou menos.
+                if (i <= 10 && par <= 10) return true;
+            } else {
+                // Para outras dificuldades, basta que seja composto.
+                return true;
+            }
+        }
+    }
+    return false; // É primo ou não atende aos critérios de dificuldade.
+};
+
+// ### FUNÇÃO gerarNumerosCartela MODIFICADA ###
+const gerarNumerosCartela = (quantidade, config) => {
   const numeros = new Set();
-  const max = dificuldade === 'facil' ? 50 : (dificuldade === 'medio' ? 150 : 300);
-  // Garante que os números gerados não sejam muito pequenos (ex: 0 ou 1), que causam problemas na geração inversa.
+  const max = config.dificuldade === 'facil' ? 100 : (config.dificuldade === 'medio' ? 150 : 300);
+  
+  // Condição especial: se SÓ tem multiplicação, precisamos garantir que os números sejam válidos.
+  const apenasMultiplicacao = config.operacoes.length === 1 && config.operacoes[0] === 'multiplicacao';
+
   while (numeros.size < quantidade) {
-    numeros.add(Math.floor(Math.random() * max) + 2);
+    // Para multiplicação fácil, o resultado não pode ser muito grande.
+    const maximoParaGerar = (apenasMultiplicacao && config.dificuldade === 'facil') ? 100 : max;
+    let candidato = Math.floor(Math.random() * maximoParaGerar) + 2;
+
+    if (apenasMultiplicacao) {
+        // Se o número candidato não for válido, pula para a próxima iteração.
+        if (!isNumeroValidoParaMultiplicacao(candidato, config.dificuldade)) {
+            continue;
+        }
+    }
+    
+    numeros.add(candidato);
   }
+
   const arrayNumeros = Array.from(numeros);
   arrayNumeros[Math.floor(quantidade / 2)] = '⭐️';
   return arrayNumeros;
 };
 
+// ... (verificarVitoria não muda)
 const verificarVitoria = (cartela, tipoBingo) => {
   const vitoriaLinha = () => {
     for (let i = 0; i < TAMANHO_CARTELA; i++) {
@@ -30,33 +67,29 @@ const verificarVitoria = (cartela, tipoBingo) => {
 
 
 function TelaJogo({ config, onFinalizar }) {
+  // ... (toda a lógica do componente, hooks useState, useEffect, etc., permanece a mesma)
   const [cartela, setCartela] = useState([]);
   const [expressao, setExpressao] = useState({ texto: 'Carregando...', resultado: null });
   const [vidas, setVidas] = useState(VIDAS_INICIAIS);
   const [tempo, setTempo] = useState(0);
 
-  // ### LÓGICA MODIFICADA AQUI ###
   const buscarNovaExpressao = useCallback(async (cartelaAtual) => {
-    // 1. Encontrar todos os números que ainda não foram marcados.
     const numerosDisponiveis = cartelaAtual
-      .flat() // Transforma a matriz 2D em um array 1D
+      .flat()
       .filter(celula => !celula.marcado && celula.numero !== '⭐️')
       .map(celula => celula.numero);
 
     if (numerosDisponiveis.length === 0) {
-        // Não deveria acontecer se a vitória for checada corretamente, mas é uma segurança.
         console.log("Não há mais números disponíveis.");
         return;
     }
     
-    // 2. Escolher um desses números para ser o próximo resultado.
     const resultadoAlvo = numerosDisponiveis[Math.floor(Math.random() * numerosDisponiveis.length)];
 
-    // 3. Chamar a API passando o resultado desejado.
     const params = new URLSearchParams({
       dificuldade: config.dificuldade,
       operacoes: config.operacoes.join(','),
-      resultado_desejado: resultadoAlvo, // Novo parâmetro!
+      resultado_desejado: resultadoAlvo,
     });
     
     try {
@@ -65,7 +98,6 @@ function TelaJogo({ config, onFinalizar }) {
 
         if (data.error) {
             console.error("Erro da API:", data.error);
-            // Tratar o erro, talvez tentando buscar outra expressão
         } else {
             setExpressao({ texto: data.expressao, resultado: data.resultado });
         }
@@ -73,11 +105,12 @@ function TelaJogo({ config, onFinalizar }) {
         console.error("Falha ao buscar expressão:", e);
         setExpressao({ texto: "Erro de conexão", resultado: null });
     }
-  }, [config]); // A dependência agora é apenas 'config'
+  }, [config]);
 
   // Inicialização do Jogo
   useEffect(() => {
-    const numeros = gerarNumerosCartela(TAMANHO_CARTELA * TAMANHO_CARTELA, config.dificuldade);
+    // Passa o objeto 'config' inteiro para a função ter acesso às operações e dificuldade
+    const numeros = gerarNumerosCartela(TAMANHO_CARTELA * TAMANHO_CARTELA, config);
     const novaCartela = [];
     for (let i = 0; i < TAMANHO_CARTELA; i++) {
       const linha = [];
@@ -91,7 +124,7 @@ function TelaJogo({ config, onFinalizar }) {
       novaCartela.push(linha);
     }
     setCartela(novaCartela);
-    buscarNovaExpressao(novaCartela); // Passa a cartela recém-criada para a função
+    buscarNovaExpressao(novaCartela);
 
     const timer = setInterval(() => setTempo(t => t + 1), 1000);
     return () => clearInterval(timer);
@@ -109,7 +142,7 @@ function TelaJogo({ config, onFinalizar }) {
       if (verificarVitoria(novaCartela, config.tipoBingo)) {
         onFinalizar({ vitoria: true, tempo: tempo, vidasRestantes: vidas });
       } else {
-        buscarNovaExpressao(novaCartela); // Busca a próxima expressão com base na cartela atualizada
+        buscarNovaExpressao(novaCartela);
       }
     } else {
       setVidas(v => {
@@ -121,7 +154,7 @@ function TelaJogo({ config, onFinalizar }) {
       });
     }
   };
-
+  
   // O JSX para renderização permanece o mesmo...
   if (cartela.length === 0) return <div>Carregando jogo...</div>;
 

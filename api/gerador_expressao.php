@@ -1,65 +1,87 @@
 <?php
-// Permite que o front-end React acesse esta API
+// ... (cabeçalhos e leitura de parâmetros continuam iguais)
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Pega os parâmetros da URL (ex: ?dificuldade=facil&operacoes=soma,subtracao)
 $dificuldade = $_GET['dificuldade'] ?? 'facil';
 $operacoes_str = $_GET['operacoes'] ?? 'soma';
 $operacoes = explode(',', $operacoes_str);
+$resultado_desejado = isset($_GET['resultado_desejado']) ? (int)$_GET['resultado_desejado'] : null;
 
-// Define os limites dos números com base na dificuldade
+if ($resultado_desejado === null) {
+    echo json_encode(['error' => 'Resultado desejado não foi fornecido.']);
+    exit;
+}
+// ... (definição de limites continua igual)
 $limites = [
-    'facil' => ['min' => 1, 'max' => 10],
-    'medio' => ['min' => 10, 'max' => 50],
-    'dificil' => ['min' => 20, 'max' => 100]
+    'facil' => ['min' => 1, 'max' => 10, 'max_sub' => 20],
+    'medio' => ['min' => 10, 'max' => 25, 'max_sub' => 50],
+    'dificil' => ['min' => 20, 'max' => 50, 'max_sub' => 100]
 ];
 $min = $limites[$dificuldade]['min'];
 $max = $limites[$dificuldade]['max'];
+$max_sub = $limites[$dificuldade]['max_sub'];
 
-// Escolhe uma operação aleatória dentre as selecionadas
 $operacao = $operacoes[array_rand($operacoes)];
-
-$num1 = 0;
-$num2 = 0;
+$resultado = $resultado_desejado;
 $expressao = '';
-$resultado = 0;
 
 switch ($operacao) {
+    // ... (cases 'soma', 'subtracao', 'divisao' continuam iguais)
     case 'soma':
-        $num1 = rand($min, $max);
-        $num2 = rand($min, $max);
+        $num1_max = ($resultado > 1) ? $resultado - 1 : 0;
+        $num1 = rand(1, $num1_max);
+        $num2 = $resultado - $num1;
         $expressao = "$num1 + $num2";
-        $resultado = $num1 + $num2;
         break;
+
     case 'subtracao':
-        $num1 = rand($min, $max);
-        $num2 = rand($min, $num1); // Garante que o resultado não seja negativo
+        $num2 = rand($min, $max);
+        $num1 = $resultado + $num2;
+        if($num1 > $max_sub) {
+            $num1 = rand($resultado + 1, $max_sub);
+            $num2 = $num1 - $resultado;
+        }
         $expressao = "$num1 - $num2";
-        $resultado = $num1 - $num2;
         break;
+
     case 'multiplicacao':
-        // Ajusta os números para não gerar resultados muito grandes
-        $max_mult = ($dificuldade == 'facil') ? 10 : 20;
-        $num1 = rand($min, $max_mult);
-        $num2 = rand(1, 10);
-        $expressao = "$num1 × $num2";
-        $resultado = $num1 * $num2;
+        // --- LÓGICA MODIFICADA AQUI ---
+        $divisores = [];
+        // Itera até a raiz quadrada para otimização
+        for ($i = 2; $i <= sqrt($resultado); $i++) {
+            if ($resultado % $i == 0) {
+                $divisor_par = $resultado / $i;
+                // Validação de dificuldade para o par de divisores
+                if ($dificuldade == 'facil' && ($i > 10 || $divisor_par > 10)) continue;
+                
+                $divisores[] = $i;
+            }
+        }
+        
+        // Se encontrarmos divisores válidos, criamos a expressão.
+        // O front-end agora garante que sempre haverá divisores se a multiplicação for a única opção.
+        if (count($divisores) > 0) {
+            $num2 = $divisores[array_rand($divisores)];
+            $num1 = $resultado / $num2;
+            $expressao = "$num1 × $num2";
+        } else {
+            // Se, por algum motivo raro, não encontrar (ex: número primo),
+            // a melhor opção é uma multiplicação por 1, que é sempre válida.
+            $expressao = "$resultado × 1";
+        }
+        // --- FIM DA MODIFICAÇÃO ---
         break;
+    
     case 'divisao':
-        // Lógica para garantir divisão exata
-        $divisor = rand(2, 10);
-        $resultado_temp = rand(2, ($dificuldade == 'facil') ? 10 : 20);
-        $dividendo = $divisor * $resultado_temp;
-        $expressao = "$dividendo ÷ $divisor";
-        $resultado = $resultado_temp;
+        $num2 = rand(2, ($dificuldade == 'facil' ? 10 : 12));
+        $num1 = $resultado * $num2;
+        $expressao = "$num1 ÷ $num2";
         break;
 }
 
-// Retorna a expressão e o resultado em formato JSON
 echo json_encode([
     'expressao' => $expressao,
     'resultado' => $resultado
 ]);
-
 ?>
