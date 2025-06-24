@@ -24,21 +24,17 @@ const isNumeroValidoParaMultiplicacao = (num, dificuldade) => {
     return false; // É primo ou não atende aos critérios de dificuldade.
 };
 
-// ### FUNÇÃO gerarNumerosCartela MODIFICADA ###
 const gerarNumerosCartela = (quantidade, config) => {
   const numeros = new Set();
   const max = config.dificuldade === 'facil' ? 100 : (config.dificuldade === 'medio' ? 150 : 300);
   
-  // Condição especial: se SÓ tem multiplicação, precisamos garantir que os números sejam válidos.
   const apenasMultiplicacao = config.operacoes.length === 1 && config.operacoes[0] === 'multiplicacao';
 
   while (numeros.size < quantidade) {
-    // Para multiplicação fácil, o resultado não pode ser muito grande.
     const maximoParaGerar = (apenasMultiplicacao && config.dificuldade === 'facil') ? 100 : max;
     let candidato = Math.floor(Math.random() * maximoParaGerar) + 2;
 
     if (apenasMultiplicacao) {
-        // Se o número candidato não for válido, pula para a próxima iteração.
         if (!isNumeroValidoParaMultiplicacao(candidato, config.dificuldade)) {
             continue;
         }
@@ -52,7 +48,6 @@ const gerarNumerosCartela = (quantidade, config) => {
   return arrayNumeros;
 };
 
-// ... (verificarVitoria não muda)
 const verificarVitoria = (cartela, tipoBingo) => {
   const vitoriaLinha = () => {
     for (let i = 0; i < TAMANHO_CARTELA; i++) {
@@ -159,6 +154,7 @@ function TelaJogo({ config, onFinalizar }) {
   if (cartela.length === 0) return <div>Carregando jogo...</div>;
 
   return (
+    <>
     <div className="tela-jogo">
         <div className="painel-superior">
             <div className="vidas">❤️ <span>{vidas}</span></div>
@@ -178,6 +174,7 @@ function TelaJogo({ config, onFinalizar }) {
         ))}
       </div>
     </div>
+  </>
   );
 }
 

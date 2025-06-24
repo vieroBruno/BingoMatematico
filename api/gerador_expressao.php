@@ -1,5 +1,12 @@
 <?php
-// ... (cabeçalhos e leitura de parâmetros continuam iguais)
+if (function_exists('opcache_reset')) {
+    opcache_reset();
+}
+// Força o navegador a não usar cache.
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
@@ -12,7 +19,6 @@ if ($resultado_desejado === null) {
     echo json_encode(['error' => 'Resultado desejado não foi fornecido.']);
     exit;
 }
-// ... (definição de limites continua igual)
 $limites = [
     'facil' => ['min' => 1, 'max' => 10, 'max_sub' => 20],
     'medio' => ['min' => 10, 'max' => 25, 'max_sub' => 50],
@@ -27,7 +33,6 @@ $resultado = $resultado_desejado;
 $expressao = '';
 
 switch ($operacao) {
-    // ... (cases 'soma', 'subtracao', 'divisao' continuam iguais)
     case 'soma':
         $num1_max = ($resultado > 1) ? $resultado - 1 : 0;
         $num1 = rand(1, $num1_max);
@@ -36,41 +41,35 @@ switch ($operacao) {
         break;
 
     case 'subtracao':
-        $num2 = rand($min, $max);
-        $num1 = $resultado + $num2;
-        if($num1 > $max_sub) {
-            $num1 = rand($resultado + 1, $max_sub);
-            $num2 = $num1 - $resultado;
-        }
+        $num2 = rand($min, $max);        
+        $num1 = $resultado + $num2; 
+    
         $expressao = "$num1 - $num2";
-        break;
+    break;
 
     case 'multiplicacao':
-        // --- LÓGICA MODIFICADA AQUI ---
-        $divisores = [];
-        // Itera até a raiz quadrada para otimização
+         $pares_de_fatores = [];
         for ($i = 2; $i <= sqrt($resultado); $i++) {
             if ($resultado % $i == 0) {
-                $divisor_par = $resultado / $i;
-                // Validação de dificuldade para o par de divisores
-                if ($dificuldade == 'facil' && ($i > 10 || $divisor_par > 10)) continue;
-                
-                $divisores[] = $i;
+                $par = $resultado / $i;
+                $pares_de_fatores[] = [$i, $par];
             }
         }
         
-        // Se encontrarmos divisores válidos, criamos a expressão.
-        // O front-end agora garante que sempre haverá divisores se a multiplicação for a única opção.
-        if (count($divisores) > 0) {
-            $num2 = $divisores[array_rand($divisores)];
-            $num1 = $resultado / $num2;
-            $expressao = "$num1 × $num2";
+        if (count($pares_de_fatores) > 0) {
+            $par_escolhido = $pares_de_fatores[array_rand($pares_de_fatores)];
+            $num1 = $par_escolhido[0];
+            $num2 = $par_escolhido[1];
+            if(rand(0,1) == 1){
+                 $expressao = "$num1 × $num2";
+            } else {
+                 $expressao = "$num2 × $num1";
+            }
+           
         } else {
-            // Se, por algum motivo raro, não encontrar (ex: número primo),
-            // a melhor opção é uma multiplicação por 1, que é sempre válida.
             $expressao = "$resultado × 1";
         }
-        // --- FIM DA MODIFICAÇÃO ---
+
         break;
     
     case 'divisao':

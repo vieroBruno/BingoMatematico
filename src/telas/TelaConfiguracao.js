@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 function TelaConfiguracao({ onIniciar }) {
   const [operacoes, setOperacoes] = useState({ soma: true, subtracao: false, multiplicacao: false, divisao: false });
-  const [dificuldade, setDificuldade] = useState('facil');
+  const [dificuldade, setDificuldade] = useState('fácil');
   const [tipoBingo, setTipoBingo] = useState('linha');
 
   const handleOperacaoChange = (e) => {
@@ -27,7 +27,7 @@ function TelaConfiguracao({ onIniciar }) {
       <div className="config-section">
         <h3>1. Escolha as operações:</h3>
         <div className="options-group">
-          {['soma', 'subtracao', 'multiplicacao', 'divisao'].map(op => (
+          {['soma', 'subtração', 'multiplicação', 'divisão'].map(op => (
             <div key={op}>
               <input type="checkbox" id={op} name={op} checked={operacoes[op]} onChange={handleOperacaoChange} />
               <label htmlFor={op}>{op.charAt(0).toUpperCase() + op.slice(1)}</label>
@@ -39,7 +39,7 @@ function TelaConfiguracao({ onIniciar }) {
       <div className="config-section">
         <h3>2. Escolha a dificuldade:</h3>
         <div className="options-group">
-          {['facil', 'medio', 'dificil'].map(d => (
+          {['fácil', 'médio', 'difícil'].map(d => (
             <div key={d}>
               <input type="radio" id={d} name="dificuldade" value={d} checked={dificuldade === d} onChange={(e) => setDificuldade(e.target.value)} />
               <label htmlFor={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</label>
