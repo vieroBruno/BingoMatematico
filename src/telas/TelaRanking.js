@@ -10,7 +10,7 @@ function TelaRanking({ onVoltar }) {
 
   return (
     <div>
-      <h2>🏆 Ranking dos Melhores 🏆</h2>
+      <h2>🏆     Ranking      🏆</h2>
       {ranking.length > 0 ? (
         <ol className="ranking-list">
           {ranking.map((item, index) => (

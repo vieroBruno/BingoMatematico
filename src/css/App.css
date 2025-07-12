@@ -9,7 +9,7 @@
   --cor-secundaria: #50e3c2;
   --cor-fundo: #f4f7f6;
   --cor-texto: #333;
-  --cor-erro: #e24a4a;
+  --cor-erro: #e24a4a; /* Cor de erro/vermelha */
   --cor-sucesso: #4ae28d;
 }
 
@@ -23,19 +23,16 @@ body {
   background-color: var(--cor-fundo);
   color: var(--cor-texto);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
   min-height: 100vh;
 }
 
 .app-container {
-  width: 90%;
-  max-width: 800px;
-  min-height: 500px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -47,6 +44,18 @@ h1, h2 {
   color: var(--cor-primaria);
 }
 
+/* Container de Botões da Tela Inicial */
+.container-botoes-inicial {
+  width: 100%;
+  max-width: 450px;
+}
+
+.botoes-principais {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espaçamento entre os botões Iniciar e Ranking */
+}
+
 /* Botões */
 .btn {
   background-color: var(--cor-primaria);
@@ -55,10 +64,10 @@ h1, h2 {
   padding: 12px 25px;
   border-radius: 8px;
   font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
-  margin: 10px;
-  min-width: 200px;
+  width: 100%;
 }
 
 .btn:hover {
@@ -75,26 +84,35 @@ h1, h2 {
 }
 
 .btn-sair {
-    background-color: #b3b3b3;
+  background-color: var(--cor-erro);
+  margin-top: 20px; /* Adiciona um espaço generoso acima do botão Sair */
+  width:50%;
 }
 .btn-sair:hover {
-    background-color: #9c9c9c;
+  background-color: #c93a3a; /* Um tom de vermelho mais escuro */
 }
 
 /* Formulários de Configuração */
 .config-form {
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* Use stretch para que os filhos ocupem o espaço */
+  align-items: center; 
   gap: 20px;
-  width: 100%; /* Manter o width 100% aqui está correto com o box-sizing */
+  width: 100%;
+}
+
+.config-form h2{
+  margin-top:50px;
+  margin-bottom:5px;
 }
 
 .config-section {
   width: 100%;
-  padding: 15px;
+  max-width: 600px;
+  padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
+  background-color: #fff;
 }
 
 .config-section h3 {
@@ -109,7 +127,6 @@ h1, h2 {
   flex-wrap: wrap;
   gap: 15px;
   justify-content: center;
-  margin-rigth: 10px; 
 }
 
 /* Checkbox e Radio customizados */
@@ -120,6 +137,7 @@ h1, h2 {
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
+  border: 1px solid transparent;
 }
 
 .options-group input[type="checkbox"], .options-group input[type="radio"] {
@@ -131,6 +149,7 @@ h1, h2 {
   background-color: var(--cor-secundaria);
   color: white;
   font-weight: bold;
+  border-color: #3ccdaa;
 }
 
 /* Tela de Ranking e Final */
@@ -146,15 +165,73 @@ h1, h2 {
 .ranking-list {
     list-style-type: none;
     padding: 0;
-    width: 80%;
+    width: 100%;
+    max-width: 500px;
+    min-width:350px;
 }
 .ranking-list li {
     background-color: #f9f9f9;
     border: 1px solid #eee;
-    padding: 10px;
-    margin-bottom: 5px;
+    padding: 10px 15px;
+    margin-bottom: 8px;
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
     font-weight: bold;
+}
+
+.botoes-acao-config {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaço entre os botões */
+    width: 100%;
+    max-width: 450px; /* Mesma largura do container da tela inicial */
+    margin-top: 5px; /* Espaço acima dos botões */
+}
+
+.btn-voltar {
+    background-color: #6c757d; /* Uma cor neutra, como cinza */
+}
+
+.btn-voltar:hover {
+    background-color: #5a6268;
+}
+.botoes-acao-final {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espaço entre os botões */
+  width: 100%;
+  max-width: 450px;
+  margin-top: 20px;
+}
+
+/* --- MEDIA QUERIES PARA RESPONSIVIDADE --- */
+
+/* Para tablets e desktops */
+@media (min-width: 768px) {
+  .app-container {
+    padding: 2rem;
+    max-height: 600px;
+  }
+  
+  .botoes-principais {
+    flex-direction: row; /* Coloca os botões lado a lado */
+  }
+  .botoes-acao-config {
+    flex-direction: row-reverse; /* Inverte a ordem visual */
+    justify-content: center;
+  }
+
+  .botoes-acao-config .btn {
+    width: auto; /* Permite que os botões tenham larguras diferentes */
+  }
+
+  .botoes-acao-final {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .botoes-acao-final .btn {
+    width: auto;
+  }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function TelaConfiguracao({ onIniciar }) {
+function TelaConfiguracao({ onIniciar, onVoltar }) {
   const [operacoes, setOperacoes] = useState({ soma: true, subtracao: false, multiplicacao: false, divisao: false });
   const [dificuldade, setDificuldade] = useState('fácil');
   const [tipoBingo, setTipoBingo] = useState('linha');
@@ -58,7 +58,14 @@ function TelaConfiguracao({ onIniciar }) {
         </div>
       </div>
       
-      <button type="submit" className="btn">Começar Jogo!</button>
+      <div className="botoes-acao-config">
+            <button type="button" className="btn btn-voltar" onClick={onVoltar}>
+                Voltar
+            </button>
+               <button type="submit" className="btn">
+                Começar Jogo
+            </button>
+        </div>
     </form>
   );
 }

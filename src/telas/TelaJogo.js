@@ -12,7 +12,7 @@ const isNumeroValidoParaMultiplicacao = (num, dificuldade) => {
     for (let i = 2; i <= Math.sqrt(num); i++) {
         if (num % i === 0) {
             const par = num / i;
-            if (dificuldade === 'facil') {
+            if (dificuldade === 'fácil') {
                 // Para ser fácil, ambos os fatores devem ser 10 ou menos.
                 if (i <= 10 && par <= 10) return true;
             } else {
@@ -26,12 +26,12 @@ const isNumeroValidoParaMultiplicacao = (num, dificuldade) => {
 
 const gerarNumerosCartela = (quantidade, config) => {
   const numeros = new Set();
-  const max = config.dificuldade === 'facil' ? 100 : (config.dificuldade === 'medio' ? 150 : 300);
+  const max = config.dificuldade === 'fácil' ? 50 : (config.dificuldade === 'médio' ? 100 : 200);
   
-  const apenasMultiplicacao = config.operacoes.length === 1 && config.operacoes[0] === 'multiplicacao';
+  const apenasMultiplicacao = config.operacoes.length === 1 && config.operacoes[0] === 'multiplicação';
 
   while (numeros.size < quantidade) {
-    const maximoParaGerar = (apenasMultiplicacao && config.dificuldade === 'facil') ? 100 : max;
+    const maximoParaGerar = (apenasMultiplicacao && config.dificuldade === 'fácil') ? 50 : max;
     let candidato = Math.floor(Math.random() * maximoParaGerar) + 2;
 
     if (apenasMultiplicacao) {
@@ -43,9 +43,42 @@ const gerarNumerosCartela = (quantidade, config) => {
     numeros.add(candidato);
   }
 
-  const arrayNumeros = Array.from(numeros);
-  arrayNumeros[Math.floor(quantidade / 2)] = '⭐️';
-  return arrayNumeros;
+  const numerosGerados = Array.from(numeros);
+
+  // Verifica se a dificuldade exige ordenação
+  if (config.dificuldade === 'fácil' || config.dificuldade === 'médio') {
+    // 1. Ordena os números do menor para o maior
+    const numerosOrdenados = numerosGerados.sort((a, b) => a - b);
+    
+    // 2. Prepara a cartela final de 25 posições
+    const cartelaFinal = Array(25);
+    let contadorNumeros = 0;
+
+    // 3. Preenche a cartela por colunas para obter o efeito desejado
+    for (let coluna = 0; coluna < 5; coluna++) {
+      for (let linha = 0; linha < 5; linha++) {
+        const index = linha * 5 + coluna; // Fórmula para calcular o índice na cartela
+
+        // Se for a posição central (12), insere a estrela
+        if (index === 12) {
+          cartelaFinal[index] = '⭐️';
+        } else {
+          // Caso contrário, insere o próximo número da lista ordenada
+          cartelaFinal[index] = numerosOrdenados[contadorNumeros];
+          contadorNumeros++;
+        }
+      }
+    }
+    // Retorna a cartela ordenada por colunas
+    return cartelaFinal;
+
+  } else {
+    // Para a dificuldade "Difícil", mantém a ordem aleatória para maior desafio
+    const cartelaDificil = [...numerosGerados];
+    // Adiciona a estrela no centro
+    cartelaDificil.splice(12, 0, '⭐️');
+    return cartelaDificil;
+  }
 };
 
 const verificarVitoria = (cartela, tipoBingo) => {
@@ -68,6 +101,15 @@ function TelaJogo({ config, onFinalizar }) {
   const [vidas, setVidas] = useState(VIDAS_INICIAIS);
   const [tempo, setTempo] = useState(0);
 
+  const renderizarVidas = () => {
+    const coracoes = [];
+    for (let i = 0; i < VIDAS_INICIAIS; i++) {
+      // Adiciona a classe 'inativo' se a vida já foi perdida
+      coracoes.push(<span key={i} className={`coracao ${i >= vidas ? 'inativo' : ''}`}>❤️</span>);
+    }
+    return coracoes;
+  };
+
   const buscarNovaExpressao = useCallback(async (cartelaAtual) => {
     const numerosDisponiveis = cartelaAtual
       .flat()
@@ -86,6 +128,7 @@ function TelaJogo({ config, onFinalizar }) {
       operacoes: config.operacoes.join(','),
       resultado_desejado: resultadoAlvo,
     });
+
     
     try {
         const response = await fetch(`http://localhost/bingo-matematico/gerador_expressao.php?${params}`);
@@ -135,7 +178,7 @@ function TelaJogo({ config, onFinalizar }) {
       setCartela(novaCartela);
       
       if (verificarVitoria(novaCartela, config.tipoBingo)) {
-        onFinalizar({ vitoria: true, tempo: tempo, vidasRestantes: vidas });
+        onFinalizar({ vitoria: true, tempo: tempo, vidasRestantes: vidas, ...config  });
       } else {
         buscarNovaExpressao(novaCartela);
       }
@@ -143,7 +186,7 @@ function TelaJogo({ config, onFinalizar }) {
       setVidas(v => {
           const novasVidas = v - 1;
           if(novasVidas <= 0) {
-              onFinalizar({ vitoria: false, tempo: tempo });
+              onFinalizar({ vitoria: false, tempo: tempo, ...config });
           }
           return novasVidas;
       });
@@ -156,10 +199,12 @@ function TelaJogo({ config, onFinalizar }) {
   return (
     <>
     <div className="tela-jogo">
-        <div className="painel-superior">
-            <div className="vidas">❤️ <span>{vidas}</span></div>
-            <div className="expressao-container">{expressao.texto} = ?</div>
+      <div className="info-superior">
+            <div className="vidas">{renderizarVidas()}</div>
             <div className="tempo">⏱️ <span>{tempo}s</span></div>
+        </div>
+        <div className="painel-superior">
+            <div className="expressao-container">{expressao.texto} = ?</div>
         </div>
 
       <div className="cartela-bingo">

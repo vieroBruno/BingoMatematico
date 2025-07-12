@@ -1,8 +1,42 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-const calcularPontuacao = (tempo, vidasRestantes) => {
-    if (tempo === 0) return 5000 + (vidasRestantes * 500);
-    return Math.floor((10000 / tempo) * (vidasRestantes || 1));
+const calcularPontuacao = ({tempo, vidasRestantes, dificuldade,tipoBingo,operacoes}) => {
+  console.log(tempo + vidasRestantes + dificuldade + tipoBingo + operacoes)
+  const pontuacaoBase = 300;
+
+  const bonusDificuldade = {
+    fácil: 0,
+    médio: 75,
+    difícil: 150,
+  }[dificuldade] || 0;
+
+  const bonusTipoBingo = tipoBingo === 'cartela' ? 150 : 0;
+
+  let bonusOperacoes = 0;
+  // Verifica se o array de operações existe antes de iterar
+  if (operacoes && operacoes.length) {
+    for (const op of operacoes) {
+      if (op === "soma" || op === "subtração") bonusOperacoes += 30;
+      if (op === "multiplicação" || op === "divisão") bonusOperacoes += 70;
+    }
+  }
+
+  // Corrigido o cálculo do bônus de tempo
+  let bonusTempo = tempo > 0 ? 150 * (30 / tempo) : 150;
+  bonusTempo = Math.max(20, Math.min(150, bonusTempo)); // limita entre 20 e 150
+
+  const bonusVidas = (vidasRestantes ?? 0) * 10;
+
+  const pontuacaoFinal =
+    pontuacaoBase +
+    bonusDificuldade +
+    bonusTipoBingo +
+    bonusOperacoes +
+    bonusTempo +
+    bonusVidas;
+  console.log(pontuacaoFinal)
+
+  return Math.round(pontuacaoFinal);
 }
 
 function TelaFinal({ resultado, onJogarNovamente, onVoltarAoInicio }) {
@@ -11,7 +45,7 @@ function TelaFinal({ resultado, onJogarNovamente, onVoltarAoInicio }) {
 
   useEffect(() => {
     if (resultado.vitoria && efeitoJaRodou.current === false) {
-      const p = calcularPontuacao(resultado.tempo, resultado.vidasRestantes);
+      const p = calcularPontuacao(resultado);
       setPontuacao(p);
       
       const nomeJogador = prompt("Parabéns! Você venceu! Digite seu nome para o ranking:");
@@ -84,7 +118,7 @@ function TelaFinal({ resultado, onJogarNovamente, onVoltarAoInicio }) {
           <p className="resultado-info">Não foi desta vez! Continue praticando.</p>
         </>
       )}
-      <div>
+       <div className="botoes-acao-final">
         <button className="btn" onClick={onJogarNovamente}>Jogar Novamente</button>
         <button className="btn btn-secundario" onClick={onVoltarAoInicio}>Menu Principal</button>
       </div>
